@@ -1,4 +1,5 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, OneToMany} from "typeorm";
+import { Decision } from './Decision';
 
 @Entity()
 export class User {
@@ -17,6 +18,9 @@ export class User {
  
     @Column({nullable: true})
     createdAt: Date
+
+    @OneToMany(type => Decision, decision => decision.user)
+    decisions: Decision[]
 
     constructor(username: string, email: string, password: string) {
         this.username = username

@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Awesome project developed with TypeORM.",
   "devDependencies": {
+    "@types/cors": "^2.8.8",
     "@types/node": "^8.10.64",
     "ts-node": "3.3.0",
     "typescript": "3.3.3333"
@@ -14,7 +15,7 @@
     "bcrypt": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.1",
-    "config": "^3.3.2",
+    "cors": "^2.8.5",
     "express": "^4.15.4",
     "express-validator": "^6.6.1",
     "jsonwebtoken": "^8.5.1",
