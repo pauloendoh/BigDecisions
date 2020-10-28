@@ -7,7 +7,7 @@ import { Priority } from './Priority';
 @Entity()
 export class OptionProblem {
 
-    @ManyToOne(type => Option, option => option.problems, { primary: true })
+    @ManyToOne(type => Option, option => option.problems, { primary: true, onDelete: 'CASCADE'})
     option: Option
 
     @PrimaryColumn()
@@ -19,7 +19,7 @@ export class OptionProblem {
     @Column()
     counterArgument: string
 
-    @Column()
+    @Column({nullable: true})
     weight: number
 
     @Column({ default: new Date() })

@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { createConnection } from "typeorm";
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { Request, Response } from "express";
 import userRoute from './routes/UserRoute';
 import authRoute from './routes/AuthRoute';
 import * as cors from 'cors';
@@ -17,6 +16,7 @@ createConnection().then(async connection => {
     app.use(bodyParser.json());
 
     // setup express app here
+    
     app.use('/api/user', userRoute)
     app.use('/api/auth', authRoute);
     app.use('/api/decision', decisionRoute);

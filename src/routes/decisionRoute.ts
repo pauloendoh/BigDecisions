@@ -1,3 +1,4 @@
+import { getRepository } from 'typeorm';
 import { Decision } from './../entity/Decision';
 import { Priority } from './../entity/Priority';
 
@@ -5,22 +6,21 @@ import * as express from "express";
 
 import { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-import { getRepository } from 'typeorm';
+import { getCustomRepository } from 'typeorm';
 import { User } from '../entity/User';
 import config from '../config';
 import { GetAuthUserDto } from '../dto/GetAuthUserDto';
 import authMiddleware from '../middleware/authMiddleware';
 import { Option } from '../entity/Option';
+import UserRepository from '../repositories/UserRepository';
+import DecisionRepository from '../repositories/DecisionRepository';
+import OptionTableRepository from '../repositories/OptionTableRepository';
 
 const decisionRoute = express.Router()
 
 
-// PE 2/3 - Muito grande?
-// @route    POST api/decision
-// @desc     Create or update a decision
-// @access   Private
-decisionRoute.post('/', [
-  authMiddleware,
+// PE 1/3 - Muito grande?
+decisionRoute.post('/', [authMiddleware,
   check('title', 'Title is required').isString(),
   check('priority', 'Priority number is required (1~3)').isNumeric()
 ],
@@ -30,57 +30,61 @@ decisionRoute.post('/', [
       return res.status(400).json({ errors: errors.array() });
 
     const body = req.body
+    const user: User = req.user
+    const priority = await getRepository(Priority).findOne({ id: body.priority })
 
+    const repo = getCustomRepository(DecisionRepository)
     try {
-      const user = await getRepository(User).findOne({ id: req.userId })
-      const priority = await getRepository(Priority).findOne({ id: body.priority })
+      let decision: Decision
 
-      const decisionRepo = getRepository(Decision)
-      let newDecision = new Decision()
-      newDecision.user = user
-      newDecision.title = body.title
-      newDecision.priority = priority
-      newDecision.createdAt = new Date() // como deixar automático?
-      newDecision.updatedAt = new Date()
-      newDecision = await decisionRepo.save(newDecision)
+      // if decision doesn't exist, create decision
+      if (!('id' in body) || !body.id) {
+        decision = await repo.createViaRequest(req)
+      }
+      // else, update
+      else {
+        decision = await repo.updateViaRequest(req)
+      }
 
-      let yesOption = new Option(newDecision, 'Yes', 1)
-      let noOption = new Option(newDecision, 'No', 2)
-
-      const optionRepo = getRepository(Option)
-      yesOption = await optionRepo.save(yesOption)
-      noOption = await optionRepo.save(noOption)
-
-      newDecision.options = []
-      newDecision.options.push(yesOption)
-      newDecision.options.push(noOption)
-
-      newDecision = await decisionRepo.save(newDecision)
-
-      // const d = await decisionRepo.findOne(
-      //   {
-      //     where: { id: newDecision.id },
-      //     relations: ["options", "options.problems"]
-      //   })
-
-      const d = await decisionRepo.createQueryBuilder("decision")
-        .leftJoinAndSelect("decision.options", "options")
-        .leftJoinAndSelect("options.problems", "problems")
-        .where({ id: newDecision.id })
-        .orderBy("decision.updatedAt", "DESC")
-        .addOrderBy("options.position", "ASC")
-        .getMany()
-
-      console.log(d)
-      return res.json(d)
+      decision = await repo.getDecisionByUserAndId(req.user, decision.id)
+      return res.json(decision)
 
     } catch (err) {
       console.error(err.message);
       return res.status(500).send('Server error');
     }
   }
-
 )
 
+decisionRoute.get('/user/:id', authMiddleware, async (req: any, res) => {
+  const userId = req.params.id
+  const body = req.body
 
+  try {
+    const user: User = req.user
+
+    const decisionRepo = getCustomRepository(DecisionRepository)
+
+    const decisions = await decisionRepo.getDecisionsFromUser(user)
+
+    return res.json(decisions)
+
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send('Server error');
+  }
+
+})
+
+
+decisionRoute.delete('/:id', [authMiddleware], async (req, res) => {
+
+  const decisionRepo = getCustomRepository(DecisionRepository)
+  const deleted = await decisionRepo.deleteByUserAndId(req.user, req.params.id)
+
+  if (deleted) {
+    return res.status(200).send('success')
+  }
+  return res.status(400).send('Error')
+})
 export default decisionRoute

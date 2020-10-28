@@ -9,16 +9,16 @@ export class Decision {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(type => User, user => user.decisions)
+    @ManyToOne(type => User, user => user.decisions, {onDelete: 'CASCADE'})
     user: User
 
     @Column()
     title: string
 
-    @ManyToOne(type => Priority, priorityValue => priorityValue.decisions)
+    @ManyToOne(type => Priority, priorityValue => priorityValue.decisions, {onDelete: 'CASCADE'})
     priority: Priority
 
-    @OneToMany(type => Option, option => option.decision)
+    @OneToMany(type => Option, option => option.decision, { onDelete: 'CASCADE' })
     options: Option[]
 
     @Column()

@@ -11,7 +11,7 @@ export class Option {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(type => Decision, decision => decision.options)
+    @ManyToOne(type => Decision, decision => decision.options, {onDelete: 'CASCADE'})
     decision: Decision
 
     @Column()
@@ -23,7 +23,7 @@ export class Option {
     @Column()
     position: number
 
-    @OneToMany(type => OptionProblem, problem => problem.option)
+    @OneToMany(type => OptionProblem, problem => problem.option, {onDelete: 'CASCADE'})
     problems: OptionProblem[]
 
     @Column({ default: new Date() })

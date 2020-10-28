@@ -8,7 +8,7 @@ export class Priority {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToMany(type => Decision, decisionTopic => decisionTopic.priority)
+    @OneToMany(type => Decision, decisionTopic => decisionTopic.priority, {onDelete: 'CASCADE'})
     decisions: Decision[]
 
     @Column()
